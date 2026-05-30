@@ -10,6 +10,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Agregar soporte para Controladores
 builder.Services.AddControllers();
 
+// Configuración de IHttpClientFactory para consumir la API externa
+builder.Services.AddHttpClient("JsonPlaceholder", client =>
+{
+    client.BaseAddress = new Uri("https://jsonplaceholder.typicode.com/");
+});
+
 // Configuración de Swagger (Documentación de la API)
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
