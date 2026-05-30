@@ -16,11 +16,46 @@ namespace TareasApi.Controllers
             _context = context;
         }
 
-        // GET: api/tareas
+        // GET: api/tareas (¡AQUÍ ESTÁ EL CAMBIO DE LA PREGUNTA 2!)
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Tarea>>> GetTareas()
+        public async Task<ActionResult<IEnumerable<Tarea>>> GetTareas(
+            [FromQuery] EstadoTarea? estado,
+            [FromQuery] PrioridadTarea? prioridad,
+            [FromQuery] DateTime? fechaInicio,
+            [FromQuery] DateTime? fechaFin)
         {
-            return await _context.Tareas.ToListAsync();
+            // 1. Validación: fechaInicio no puede ser mayor que fechaFin
+            if (fechaInicio.HasValue && fechaFin.HasValue && fechaInicio > fechaFin)
+            {
+                return BadRequest("La fechaInicio no puede ser mayor que la fechaFin.");
+            }
+
+            // 2. Iniciar la consulta base
+            var query = _context.Tareas.AsQueryable();
+
+            // 3. Aplicar filtros dinámicamente si el usuario los envió
+            if (estado.HasValue)
+            {
+                query = query.Where(t => t.Estado == estado.Value);
+            }
+
+            if (prioridad.HasValue)
+            {
+                query = query.Where(t => t.Prioridad == prioridad.Value);
+            }
+
+            if (fechaInicio.HasValue)
+            {
+                query = query.Where(t => t.FechaVencimiento.Date >= fechaInicio.Value.Date);
+            }
+
+            if (fechaFin.HasValue)
+            {
+                query = query.Where(t => t.FechaVencimiento.Date <= fechaFin.Value.Date);
+            }
+
+            // 4. Ejecutar la consulta y devolver los resultados
+            return await query.ToListAsync();
         }
 
         // GET: api/tareas/{id}
